@@ -12,9 +12,10 @@ using System.Net;
 
 namespace MagicVilla_VillaAPI.Controllers
 {
-    [Route("api/VillaAPI")]
+    [Route("api/v{version:apiVersion}/VillaAPI")]
     //[Route("api/[controller]")]
     [ApiController]
+    [ApiVersion("1.0")]
     public class VillaAPIController : ControllerBase
     {
         //private readonly ILogging _logger;
@@ -34,15 +35,31 @@ namespace MagicVilla_VillaAPI.Controllers
         }
 
         [HttpGet]
+        //[ResponseCache(Duration =10)]
+        [ResponseCache(CacheProfileName = "Default30")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<APIResponse>> GetVillas()
+        public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "Filter Occupency")]int? occupency, [FromQuery]string? search)
         {
             try
             {
                 //_logger.Log("Getting all Villas" , "");
-                IEnumerable<Villa> villaList = await _dbVilla.GetAllAsync();
+                IEnumerable<Villa> villaList;
+                
+                if(occupency > 0)
+                {
+                    villaList = await _dbVilla.GetAllAsync(u=>u.Occupancy == occupency);
+                }
+                else
+                {
+                    villaList = await _dbVilla.GetAllAsync();
+                }
+                if(!string.IsNullOrEmpty(search))
+                {
+                    villaList = await _dbVilla.GetAllAsync(u => u.Amenity.ToLower().Contains(search) || u.Name.ToLower().Contains(search) || u.Details.ToLower().Contains(search));
+                }
+               
                 _response.Result = _mapper.Map<List<VillaDTO>>(villaList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);

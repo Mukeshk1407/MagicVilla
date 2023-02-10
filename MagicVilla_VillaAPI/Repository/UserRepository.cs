@@ -42,6 +42,11 @@ namespace MagicVilla_VillaAPI.Repository
                 };
                 return logResponse;
             }
+            //Own Code
+            if(user.Role == null)
+            {
+                user.Role = "User";
+            }
             //if user is found we to generate a token
 
             var tokentHandler = new JwtSecurityTokenHandler();
