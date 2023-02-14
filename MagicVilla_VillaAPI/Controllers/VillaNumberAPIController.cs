@@ -37,6 +37,7 @@ namespace MagicVilla_VillaAPI.Controllers
                 //_logger.Log("Getting all Villas" , "");
                 IEnumerable<VillaNumber> villaNumberList = await _dbVillaNumber.GetAllAsync(includeProperties:"Villa");
                 _response.Result = _mapper.Map<List<VillaNumberDTO>>(villaNumberList);
+                _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
             }
@@ -65,6 +66,7 @@ namespace MagicVilla_VillaAPI.Controllers
                 {
                     //_logger.Log("Get vill error with id" + id , "error");
                     _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
                     return BadRequest(_response);
                 }
                 var villaNumber = await _dbVillaNumber.GetAsync(s => s.VillaNO == id, includeProperties: "Villa");
@@ -72,10 +74,12 @@ namespace MagicVilla_VillaAPI.Controllers
                 if (villaNumber == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
                     return NotFound(_response);
                 }
 
                 _response.Result = _mapper.Map<VillaNumberDTO>(villaNumber);
+                _response.IsSuccess = true;
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
             }
@@ -110,17 +114,20 @@ namespace MagicVilla_VillaAPI.Controllers
                 if (await _dbVillaNumber.GetAsync(s => s.VillaNO == createDTO.VillaNO) != null)
                 {
                     ModelState.AddModelError("ErrorMessages", "The Villa Number is Already Exists!");
+                    _response.IsSuccess = false;
                     return BadRequest(ModelState);
                 }
                 
                 if (await _dbVilla.GetAsync(s => s.Id == createDTO.VillaID) == null)
                 {
                     ModelState.AddModelError("ErrorMessages", "Villa ID is invalid!");
+                    _response.IsSuccess = false;
                     return BadRequest(ModelState);
                 }
                 if (createDTO == null)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
                     return BadRequest(_response);
                 }
 
@@ -143,6 +150,7 @@ namespace MagicVilla_VillaAPI.Controllers
 
                 _response.Result = _mapper.Map<VillaNumberDTO>(villaNumber);
                 _response.StatusCode = HttpStatusCode.Created;
+                _response.IsSuccess = true;
                 return CreatedAtRoute("GetVilla", new { id = villaNumber.VillaNO }, _response);
             }
             catch (Exception ex)
@@ -171,6 +179,7 @@ namespace MagicVilla_VillaAPI.Controllers
                 if (id == 0)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
                     return BadRequest(_response);
                 }
                 var villaNumber = await _dbVillaNumber.GetAsync(s => s.VillaNO == id);
@@ -178,6 +187,7 @@ namespace MagicVilla_VillaAPI.Controllers
                 if (villaNumber == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
                     return NotFound(_response);
                 }
 
@@ -212,12 +222,14 @@ namespace MagicVilla_VillaAPI.Controllers
                 if (updateDTO == null || id != updateDTO.VillaNO)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
                     return BadRequest(_response);
                 }
 
                 if (await _dbVilla.GetAsync(s => s.Id == updateDTO.VillaID) == null)
                 {
                     ModelState.AddModelError("ErrorMessages", "Villa ID is invalid!");
+                    _response.IsSuccess = false;
                     return BadRequest(ModelState);
                 }
 
